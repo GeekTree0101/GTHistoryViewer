@@ -6,7 +6,8 @@ extension UIColor {
     static var randomColor: UIColor {
         let vividColorList: [UIColor] = [.vividRed, .vividBlue,
                                          .vividGreen, .vividOrange,
-                                         .vividYellow]
+                                         .vividYellow, .vividPink,
+                                         .vividPurple, .vividSkyblue]
         let randIndex: Int = Int(arc4random_uniform(UInt32(vividColorList.count)))
         return vividColorList[randIndex]
     }
@@ -46,6 +47,27 @@ extension UIColor {
                             alpha: 1.0)
     }
     
+    static var vividPurple: UIColor {
+        return UIColor.init(red: 179.0 / 255.0,
+                            green: 74.0 / 255.0,
+                            blue: 214.0 / 255.0,
+                            alpha: 1.0)
+    }
+    
+    static var vividPink: UIColor {
+        return UIColor.init(red: 179.0 / 255.0,
+                            green: 74.0 / 255.0,
+                            blue: 214.0 / 255.0,
+                            alpha: 1.0)
+    }
+    
+    static var vividSkyblue: UIColor {
+        return UIColor.init(red: 130.0 / 255.0,
+                            green: 218.0 / 255.0,
+                            blue: 224.0 / 255.0,
+                            alpha: 1.0)
+    }
+    
     func getColorName() -> String {
         switch self {
         case .vividRed:
@@ -58,6 +80,12 @@ extension UIColor {
             return "VividYellow"
         case .vividOrange:
             return "VividOrange"
+        case .vividPurple:
+            return "VividPurple"
+        case .vividPink:
+            return "VividPink"
+        case .vividSkyblue:
+            return "VividSkyblue"
         default: return "Unknown"
         }
     }

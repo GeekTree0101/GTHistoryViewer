@@ -35,22 +35,13 @@ class TestViewController: UIViewController {
         self.view.addGestureRecognizer(tapper)
         tapper.addTarget(self, action: #selector(didTapBackground))
         self.attachCountLabel()
-        self.setupHistoryViewer()
     }
     
-    func setupHistoryViewer() {
-        //GTHistoryViewer.shared.registGesture(view: self.view)
-        
-        GTHistoryViewer.shared.updatePreviewAttribite({ node in
-            node.frameColor = UIColor.red
-        })
+    override func didMove(toParentViewController parent: UIViewController?) {
+        GTHistoryViewer.shared.didMove(self, parent: parent)
+        super.didMove(toParentViewController: parent)
     }
-    
-    override func willMove(toParentViewController parent: UIViewController?) {
-        super.willMove(toParentViewController: parent)
-        GTHistoryViewer.shared.willMove(self, parent: parent)
-    }
-    
+
     private func attachCountLabel() {
         self.view.addSubview(self.countLabelView)
         self.countLabelView.snp.makeConstraints({ make in

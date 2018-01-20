@@ -47,7 +47,12 @@ class GTHistoryViewer: ASScrollNode {
         self.automaticallyManagesSubnodes = true
     }
     
-    func willMove(_ presentViewController: UIViewController, parent: UIViewController?) {
+    func didMove(_ presentViewController: UIViewController, parent: UIViewController?) {
+        guard self.didRegistGestureRecognizer else {
+            print("ERROR: Please register GTHistoryViewer gesture")
+            return
+        }
+        
         if parent != nil {
             // Push new viewcontroller on navigation controller
             let image = captureScreen(presentViewController)
