@@ -2,6 +2,8 @@
 
 ###### UINavigationController navigation stack viewer, built on Texture and written in Swift
 
+![alt text](https://github.com/GeekTree0101/GTHistoryViewer/blob/master/resource/GTHistoryViewer.gif)
+
 ## Feature
 - Export to Cocoapod
 - Test code
