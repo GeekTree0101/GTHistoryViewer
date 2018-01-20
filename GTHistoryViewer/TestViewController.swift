@@ -1,7 +1,7 @@
 import UIKit
 import SnapKit
 
-class ViewController: UIViewController {
+class TestViewController: UIViewController {
     private let tapper = UITapGestureRecognizer()
     private let leftswipe = UISwipeGestureRecognizer()
     private let rightswipe = UISwipeGestureRecognizer()
@@ -59,7 +59,7 @@ class ViewController: UIViewController {
     }
     
     @objc func didTapBackground() {
-        let viewController = ViewController(index: self.index + 1)
+        let viewController = TestViewController(index: self.index + 1)
         self.navigationController?.pushViewController(viewController, animated: true)
     }
     

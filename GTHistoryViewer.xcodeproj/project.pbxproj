@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9B5CFD1D2012F55D002924D1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5CFD1C2012F55D002924D1 /* AppDelegate.swift */; };
-		9B5CFD1F2012F55D002924D1 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5CFD1E2012F55D002924D1 /* ViewController.swift */; };
+		9B5CFD1F2012F55D002924D1 /* TestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5CFD1E2012F55D002924D1 /* TestViewController.swift */; };
 		9B5CFD242012F55D002924D1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9B5CFD232012F55D002924D1 /* Assets.xcassets */; };
 		9B5CFD322012F55D002924D1 /* GTHistoryViewerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5CFD312012F55D002924D1 /* GTHistoryViewerTests.swift */; };
 		9B5CFD3E2012F65C002924D1 /* GTHistoryViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5CFD3D2012F65C002924D1 /* GTHistoryViewer.swift */; };
@@ -30,7 +30,7 @@
 		1A5F29382343183CED1A2606 /* Pods_GTHistoryViewer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GTHistoryViewer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B5CFD192012F55D002924D1 /* GTHistoryViewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GTHistoryViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B5CFD1C2012F55D002924D1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		9B5CFD1E2012F55D002924D1 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		9B5CFD1E2012F55D002924D1 /* TestViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestViewController.swift; sourceTree = "<group>"; };
 		9B5CFD232012F55D002924D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9B5CFD282012F55D002924D1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9B5CFD2D2012F55D002924D1 /* GTHistoryViewerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GTHistoryViewerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -95,7 +95,7 @@
 			isa = PBXGroup;
 			children = (
 				9B5CFD1C2012F55D002924D1 /* AppDelegate.swift */,
-				9B5CFD1E2012F55D002924D1 /* ViewController.swift */,
+				9B5CFD1E2012F55D002924D1 /* TestViewController.swift */,
 				9B5CFD232012F55D002924D1 /* Assets.xcassets */,
 				9B5CFD282012F55D002924D1 /* Info.plist */,
 			);
@@ -302,7 +302,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9B5CFD1F2012F55D002924D1 /* ViewController.swift in Sources */,
+				9B5CFD1F2012F55D002924D1 /* TestViewController.swift in Sources */,
 				9B5CFD3E2012F65C002924D1 /* GTHistoryViewer.swift in Sources */,
 				9B5CFD1D2012F55D002924D1 /* AppDelegate.swift in Sources */,
 				9B5CFD412012F805002924D1 /* UIColor+GTHistoryViewer.swift in Sources */,
