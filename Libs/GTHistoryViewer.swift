@@ -7,13 +7,41 @@ protocol GTHistoryViewerProtocol: class {
 class GTHistoryViewer: ASScrollNode {
     typealias PreviewNode = GTHistoryPreviewNode
     static let shared: GTHistoryViewer = GTHistoryViewer()
+    
+    fileprivate let showSwipe = UISwipeGestureRecognizer()
+    fileprivate let hideSwipe = UISwipeGestureRecognizer()
+    fileprivate var didRegistGestureRecognizer: Bool = false
+    
     private var historyStack: [PreviewNode] = []
-    private var spacing: CGFloat = 10.0
+    private let spacing: CGFloat
+    private var customShadowAttribute: PreviewNode.Shadow = .init()
+    private var customPreviewAttribute: PreviewNode.Preview = .init()
+    
     private var stackAreaInsets: UIEdgeInsets = .init(top: 10.0, left: 10.0, bottom: 10.0, right: 10.0)
+    private var fadeOutDurationAfterPush: TimeInterval = 0.3
+    fileprivate struct Const {
+        static let defaultSpacing: CGFloat = 10.0
+        static let defaultViewerHeight: CGFloat = 200.0
+        static let swipeGestureKey: String = "GTHistoryViewer-Gesture"
+    }
+    
+    enum ViewerAlign {
+        case top
+        case center
+        case bottom
+    }
     
     init(customShadowAttribute: PreviewNode.Shadow? = nil,
-         customPreviewAttribute: PreviewNode.Preview? = nil) {
+         customPreviewAttribute: PreviewNode.Preview? = nil,
+         spacing: CGFloat = Const.defaultSpacing) {
+        self.spacing = spacing
         super.init()
+        self.showSwipe.addTarget(self, action: #selector(openHistory))
+        self.hideSwipe.addTarget(self, action: #selector(closeHistory))
+        self.showSwipe.direction = .left
+        self.hideSwipe.direction = .right
+        self.showSwipe.name = Const.swipeGestureKey
+        self.showSwipe.name = Const.swipeGestureKey
         self.scrollableDirections = [.left, .right]
         self.automaticallyManagesContentSize = true
         self.automaticallyManagesSubnodes = true
@@ -23,28 +51,38 @@ class GTHistoryViewer: ASScrollNode {
         if parent != nil {
             // Push new viewcontroller on navigation controller
             let image = captureScreen(presentViewController)
-            let previewNode = PreviewNode(image, index: self.historyStack.count)
+            let previewNode = PreviewNode(image,
+                                          index: self.historyStack.count,
+                                          shadowAttribute: self.customShadowAttribute,
+                                          previewAttribute: self.customPreviewAttribute)
             previewNode.style.spacingBefore = self.spacing
             previewNode.delegate = self
             historyStack.append(previewNode)
             self.setNeedsLayout()
-            self.scrollToRight()
+            UIView.animate(withDuration: self.fadeOutDurationAfterPush,
+                           animations: {
+                            self.view.alpha = 0.0
+                            self.scrollToRight()
+            }, completion: { _ in
+                self.view.removeFromSuperview()
+            })
         } else {
             // Pop stack on navigation controller
             _ = self.historyStack.popLast()
             self.setNeedsLayout()
+            GTHistoryViewer.hide()
         }
     }
     
     private func scrollToRight() {
+        guard self.view.contentSize.width > UIScreen.main.bounds.width,
+            let firstNode = self.historyStack.first else { return }
+        
         DispatchQueue.main.async {
-            var xOffset: CGFloat = self.view.contentSize.width - self.view.bounds.size.width
-            
-            if let firstNode = self.historyStack.first,
-                UIScreen.main.bounds.width < self.view.contentSize.width {
-                xOffset += firstNode.calculatedSize.width + self.spacing
-            }
-            let rightOffset = CGPoint(x: xOffset,
+            var xOffset: CGFloat = (firstNode.calculatedSize.width + self.spacing)
+            xOffset *= CGFloat(self.historyStack.count)
+            xOffset += (self.spacing * 2)
+            let rightOffset = CGPoint(x: xOffset - self.view.bounds.size.width,
                                       y: 0.0)
             self.view.setContentOffset(rightOffset, animated: true)
         }
@@ -81,6 +119,103 @@ class GTHistoryViewer: ASScrollNode {
     }
 }
 
+// MARK: - update attribute
+extension GTHistoryViewer {
+    @objc private func openHistory() {
+        GTHistoryViewer.show()
+    }
+    
+    @objc private func closeHistory() {
+        GTHistoryViewer.hide()
+    }
+    
+    private func gestureRegistAvailableCheck(_ view: UIView) -> Bool {
+        guard let gestures = view.gestureRecognizers else { return true}
+        
+        for gesture in gestures where gesture.name == Const.swipeGestureKey {
+            print("ERROR: Already regist History Viewer gesture")
+            return false
+        }
+        
+        return true
+    }
+    
+    @discardableResult func registGlobalGesture() -> GTHistoryViewer {
+        guard let view = UIApplication
+            .shared
+            .keyWindow?
+            .rootViewController?
+            .view else { return self }
+        
+        guard gestureRegistAvailableCheck(view) else { return self }
+        
+        view.addGestureRecognizer(showSwipe)
+        view.addGestureRecognizer(hideSwipe)
+        self.didRegistGestureRecognizer = true
+        return self
+    }
+    
+    @discardableResult func registGesture(view: UIView) -> GTHistoryViewer {
+        guard gestureRegistAvailableCheck(view) else { return self }
+        
+        view.addGestureRecognizer(showSwipe)
+        view.addGestureRecognizer(hideSwipe)
+        self.didRegistGestureRecognizer = true
+        return self
+    }
+    
+    @discardableResult func unregistGesture(view: UIView?) -> GTHistoryViewer {
+        guard let targetView = view else {
+            guard let view = UIApplication
+                .shared
+                .keyWindow?
+                .rootViewController?
+                .view else { return self }
+            
+            view.removeGestureRecognizer(showSwipe)
+            view.removeGestureRecognizer(hideSwipe)
+            
+            self.didRegistGestureRecognizer = false
+            return self
+        }
+        
+        targetView.removeGestureRecognizer(showSwipe)
+        targetView.removeGestureRecognizer(hideSwipe)
+        self.didRegistGestureRecognizer = false
+        return self
+    }
+    
+    @discardableResult func updatePreviewAttribite(_ block: (inout PreviewNode.Preview) -> Void) -> GTHistoryViewer {
+        block(&self.customPreviewAttribute)
+        for previewNode in self.historyStack {
+            previewNode.setPreviewImageAttribute({ node in
+                node.frameColor = self.customPreviewAttribute.frameColor
+                node.previewBorderWidth = self.customPreviewAttribute.previewBorderWidth
+                node.previewCornerRadius = self.customPreviewAttribute.previewCornerRadius
+            })
+        }
+        return self
+    }
+    
+    @discardableResult func updateShadowAttribute(_ block: (inout PreviewNode.Shadow) -> Void) -> GTHistoryViewer {
+        block(&self.customShadowAttribute)
+        for previewNode in self.historyStack {
+            previewNode.setPreviewShadowAttribute({ node in
+                node.shadowOpacity = self.customShadowAttribute.shadowOpacity
+                node.shadowColor = self.customShadowAttribute.shadowColor
+                node.shadowRadius = self.customShadowAttribute.shadowRadius
+                node.shadowOffset = self.customShadowAttribute.shadowOffset
+            })
+        }
+        return self
+    }
+    
+    @discardableResult func updateFadeOutDurationAfterPush(_ duration: TimeInterval) -> GTHistoryViewer {
+        self.fadeOutDurationAfterPush = duration
+        return self
+    }
+}
+
 // MARK: - touch event
 extension GTHistoryViewer: GTHistoryViewerProtocol {
     func didTapPreviewImage(index: Int) {
@@ -98,7 +233,10 @@ extension GTHistoryViewer: GTHistoryViewerProtocol {
 
 // MARK: - external event
 extension GTHistoryViewer {
-    static func show(_ previewHeight: CGFloat = 200.0) {
+    static func show(_ previewHeight: CGFloat = Const.defaultViewerHeight,
+                     align: ViewerAlign = .bottom,
+                     duration: TimeInterval = 0.5,
+                     delay: TimeInterval = 0.0) {
         guard GTHistoryViewer.shared.view.superview == nil else { return }
         guard let rootViewController = UIApplication
             .shared
@@ -124,14 +262,6 @@ extension GTHistoryViewer {
                                                        multiplier: 1,
                                                        constant: 0)
             
-            let bottomConstraint = NSLayoutConstraint(item: node.view,
-                                                       attribute: NSLayoutAttribute.bottom,
-                                                       relatedBy: NSLayoutRelation.equal,
-                                                       toItem: rootView,
-                                                       attribute: NSLayoutAttribute.bottom,
-                                                       multiplier: 1,
-                                                       constant: 0)
-            
             let heightConstraint = NSLayoutConstraint(item: node.view,
                                                       attribute: NSLayoutAttribute.height,
                                                       relatedBy: NSLayoutRelation.equal,
@@ -139,25 +269,51 @@ extension GTHistoryViewer {
                                                       attribute: NSLayoutAttribute.height,
                                                       multiplier: 1,
                                                       constant: previewHeight)
-
+            
+            var adjustAttribute: NSLayoutAttribute = .bottom
+            
+            switch align {
+            case .top:
+                adjustAttribute = .top
+            case .center:
+                adjustAttribute = .centerY
+            case .bottom:
+                adjustAttribute = .bottom
+            }
+            
+            let offsetConstraint = NSLayoutConstraint(item: node.view,
+                                                  attribute: adjustAttribute,
+                                                  relatedBy: NSLayoutRelation.equal,
+                                                  toItem: rootView,
+                                                  attribute: adjustAttribute,
+                                                  multiplier: 1,
+                                                  constant: 0)
+            
             NSLayoutConstraint.activate([leadingConstraint,
                                          tralingConstraint,
-                                         bottomConstraint,
+                                         offsetConstraint,
                                          heightConstraint])
            
             GTHistoryViewer.shared.alpha = 0.0
-            UIView.animate(withDuration: 0.5, animations: {
+            UIView.animate(withDuration: duration,
+                           delay: delay,
+                           options: .curveEaseIn,
+                           animations: {
                 GTHistoryViewer.shared.alpha = 1.0
                 GTHistoryViewer.shared.scrollToRight()
             }, completion: nil)
         })
     }
     
-    static func hide() {
+    static func hide(duration: TimeInterval = 0.5,
+                     delay: TimeInterval = 0.0) {
         guard GTHistoryViewer.shared.view.superview != nil else { return }
-        UIView.animate(withDuration: 0.5, animations: {
-            GTHistoryViewer.shared.alpha = 0.0
-            GTHistoryViewer.shared.scrollToLeft()
+        UIView.animate(withDuration: duration,
+                       delay: delay,
+                       options: .curveEaseOut,
+                       animations: {
+                        GTHistoryViewer.shared.alpha = 0.0
+                        GTHistoryViewer.shared.scrollToLeft()
         }, completion: { _ in
             GTHistoryViewer.shared.view.removeFromSuperview()
         })
@@ -191,27 +347,45 @@ class GTHistoryPreviewNode: ASDisplayNode {
     }()
     
     struct Shadow {
-        var shadowColor: UIColor = .gray
-        var shadowOffset: CGSize = .init(width: 1.0, height: 1.0)
-        var shadowOpacity: CGFloat = 1.0
-        var shadowRadius: CGFloat = 1.0
+        var shadowColor: UIColor
+        var shadowOffset: CGSize
+        var shadowOpacity: CGFloat
+        var shadowRadius: CGFloat
+
+        init(color: UIColor = .gray,
+             offset: CGSize = .init(width: 1.0, height: 1.0),
+             opacity: CGFloat = 1.0,
+             radius: CGFloat = 1.0) {
+            self.shadowColor = color
+            self.shadowOffset = offset
+            self.shadowOpacity = opacity
+            self.shadowRadius = radius
+        }
     }
     
     struct Preview {
         var frameColor: UIColor = UIColor.lightGray.withAlphaComponent(0.8)
         var previewCornerRadius: CGFloat = 0.0
         var previewBorderWidth: CGFloat = 0.5
+        
+        init(frameColor: UIColor = UIColor.lightGray.withAlphaComponent(0.8),
+             radius: CGFloat = 0.0,
+             borderWidth: CGFloat = 0.5) {
+            self.frameColor = frameColor
+            self.previewCornerRadius = radius
+            self.previewBorderWidth = borderWidth
+        }
     }
     
-    let index: Int
-    let shadow: Shadow
-    let preview: Preview
-    let screenRatio = UIScreen.main.bounds.height / UIScreen.main.bounds.width
+    private let index: Int
+    fileprivate var shadow: Shadow
+    fileprivate var preview: Preview
+    private let screenRatio = UIScreen.main.bounds.height / UIScreen.main.bounds.width
     
     init(_ image: UIImage?,
          index: Int,
-         shadowAttribute: Shadow = Shadow(),
-         previewAttribute: Preview = Preview()) {
+         shadowAttribute: Shadow,
+         previewAttribute: Preview) {
         self.shadow = shadowAttribute
         self.preview = previewAttribute
         self.index = index
@@ -236,16 +410,16 @@ class GTHistoryPreviewNode: ASDisplayNode {
 }
 
 extension GTHistoryPreviewNode {
-    @discardableResult func setPreviewImageAttribute(_ block: (Node.Preview) -> Void) -> Node {
-        block(self.preview)
+    @discardableResult fileprivate func setPreviewImageAttribute(_ block: (inout Node.Preview) -> Void) -> Node {
+        block(&self.preview)
         self.previewImageNode.borderColor = self.preview.frameColor.cgColor
         self.previewImageNode.borderWidth = self.preview.previewBorderWidth
         self.previewImageNode.cornerRadius = self.preview.previewCornerRadius
         return self
     }
     
-    @discardableResult func setPreviewShadow(_ block: (Node.Shadow) -> Void) -> Node {
-        block(self.shadow)
+    @discardableResult fileprivate func setPreviewShadowAttribute(_ block: (inout Node.Shadow) -> Void) -> Node {
+        block(&self.shadow)
         self.previewImageNode.shadowColor = self.shadow.shadowColor.cgColor
         self.previewImageNode.shadowOffset = self.shadow.shadowOffset
         self.previewImageNode.shadowOpacity = self.shadow.shadowOpacity

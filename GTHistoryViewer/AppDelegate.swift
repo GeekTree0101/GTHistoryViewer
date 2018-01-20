@@ -13,6 +13,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let navigationController = UINavigationController(rootViewController: rootViewController)
         self.window?.rootViewController = navigationController
         self.window?.makeKeyAndVisible()
+        
+        GTHistoryViewer.shared.registGlobalGesture()
         return true
     }
 

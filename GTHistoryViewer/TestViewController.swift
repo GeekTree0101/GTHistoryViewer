@@ -3,8 +3,6 @@ import SnapKit
 
 class TestViewController: UIViewController {
     private let tapper = UITapGestureRecognizer()
-    private let leftswipe = UISwipeGestureRecognizer()
-    private let rightswipe = UISwipeGestureRecognizer()
     private let index: Int
     
     private lazy var countLabelView = { () -> UILabel in
@@ -35,15 +33,17 @@ class TestViewController: UIViewController {
         self.title = self.view.backgroundColor?.getColorName()
         self.view.isUserInteractionEnabled = true
         self.view.addGestureRecognizer(tapper)
-        self.view.addGestureRecognizer(leftswipe)
-        self.view.addGestureRecognizer(rightswipe)
         tapper.addTarget(self, action: #selector(didTapBackground))
-        leftswipe.addTarget(self, action: #selector(openHistory))
-        leftswipe.direction = .left
-        
-        rightswipe.addTarget(self, action: #selector(closeHistory))
-        rightswipe.direction = .right
         self.attachCountLabel()
+        self.setupHistoryViewer()
+    }
+    
+    func setupHistoryViewer() {
+        //GTHistoryViewer.shared.registGesture(view: self.view)
+        
+        GTHistoryViewer.shared.updatePreviewAttribite({ node in
+            node.frameColor = UIColor.red
+        })
     }
     
     override func willMove(toParentViewController parent: UIViewController?) {
@@ -61,14 +61,6 @@ class TestViewController: UIViewController {
     @objc func didTapBackground() {
         let viewController = TestViewController(index: self.index + 1)
         self.navigationController?.pushViewController(viewController, animated: true)
-    }
-    
-    @objc func openHistory() {
-        GTHistoryViewer.show()
-    }
-    
-    @objc func closeHistory() {
-        GTHistoryViewer.hide()
     }
     
     
